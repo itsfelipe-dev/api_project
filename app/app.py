@@ -48,12 +48,18 @@ def home():
 	return render_template('home.html') 
 
 
+def set_columns_table(table, data):
+		table_class = globals()[table.title()]
+		data.columns = table_class.__table__.columns.keys() 
+		return data
+
 @app.route('/upload-csv', methods=['POST'])
 def upload_csv():
 	"""
 		This endpoint are going to handle post files in csv format and inert into mysql database 
 	"""
 	try:
+		
 		try:
 			table = request.headers.get('table').lower()
 		except Exception as err:
@@ -62,6 +68,7 @@ def upload_csv():
 		if table in table_info:
 			file_data = request.get_data()
 			data = pd.read_csv(io.BytesIO(file_data))
+			data = set_columns_table(table, data)
 			data.to_sql(name=table, con=db.engine, if_exists='append', index=False)
 			return jsonify ({'message': f"CSV data uploaded to {table} table"}), 200
 		
