@@ -32,7 +32,7 @@ class Jobs(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(255))
 
-class HiredEmployees(db.Model):
+class Hiredemployees(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(255))
 	datetime = db.Column(db.String(255))
@@ -59,7 +59,6 @@ def upload_csv():
 		This endpoint are going to handle post files in csv format and inert into mysql database 
 	"""
 	try:
-		
 		try:
 			table = request.headers.get('table').lower()
 		except Exception as err:
@@ -89,8 +88,11 @@ def employees_hired():
 			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2, 
 			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
 			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
-			from hired_employees inner join jobs on hired_employees.job_id = jobs.id  inner join departments on hired_employees.department_id = departments.id where date_format(cast(hired_employees.datetime as date),'%Y') = '2021' group by departments.id , jobs.id  
-			ORDER BY `department`ASC, `job`;
+			from hired_employees inner join jobs on hired_employees.job_id = jobs.id 
+			inner join departments on hired_employees.department_id = departments.id
+			where date_format(cast(hired_employees.datetime as date),'%Y') = '2021'
+			group by departments.id , jobs.id  
+			order by `department`ASC, `job`;
 			"""
 		result_df = pd.read_sql(text(query),connection)
 		print(result_df)
@@ -106,8 +108,25 @@ def list_id_employees():
 		employees than the mean of employees hired in 2021 for all the departments, ordered
 		by the number of employees hired (descending).
 	"""
-	#some sql stuff 
-	pass
+	with db.engine.connect() as connection:
+		query= """
+			select
+				hired_employees.id,
+				hired_employees.name,
+				count(1) as hired,
+				hired_employees.datetime
+			from
+				hired_employees
+			inner join departments on departments.id = hired_employees.department_id
+			where
+				date_format(cast(hired_employees.datetime as date), '%Y') = '2021'
+			group by departments.id
+			order by hired desc;
+			"""
+		result_df = pd.read_sql(text(query),connection)
+		print(result_df)
+		return render_template("base.html", column_names=result_df.columns.values, row_data=list(result_df.values.tolist()),
+                           title="Section 2: SQL", zip=zip, description="Number of employees hired for each job and department in 2021 divided by quarter. The table must be ordered alphabetically by department and job.")
 
 
 if __name__ == '__main__':
