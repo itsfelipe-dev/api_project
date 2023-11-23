@@ -76,17 +76,30 @@ def upload_csv():
 		return jsonify({'error': f'Error uploading data: {err}'}), 500
 
 
-@app.route('/analytics/employees-hired', methods=['POST'])
+@app.route('/analytics/employees-hired', methods=['GET'])
 def employees_hired():
 	"""
 		This endpoint are going to get the number of employees hired for each job and department in 2021 divided by quarter. The
 		table must be ordered alphabetically by department and job.
 	"""
-	#some sql stuff 
-	pass
+	with db.engine.connect() as connection:
+		query= """
+			select departments.kind as department, '' as empty_column, jobs.name as job, 
+			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS Q1, 
+			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2, 
+			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
+			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
+			from hired_employees inner join jobs on hired_employees.job_id = jobs.id  inner join departments on hired_employees.department_id = departments.id where date_format(cast(hired_employees.datetime as date),'%Y') = '2021' group by departments.id , jobs.id  
+			ORDER BY `department`ASC, `job`;
+			"""
+		result_df = pd.read_sql(text(query),connection)
+		print(result_df)
+		return render_template("base.html", column_names=result_df.columns.values, row_data=list(result_df.values.tolist()),
+                           title="Section 2: SQL", zip=zip, description="Number of employees hired for each job and department in 2021 divided by quarter. The table must be ordered alphabetically by department and job.")
 
 
-@app.route('/analytics/list-id-employees', methods=['POST'])
+
+@app.route('/analytics/list-id-employees', methods=['GET'])
 def list_id_employees():
 	"""
 		This endpoint are going to get the list of ids, name and number of employees hired of each department that hired more
