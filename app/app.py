@@ -22,17 +22,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class Departments(db.Model):
-	pass
+	id = db.Column(db.Integer, primary_key=True)
+	kind = db.Column(db.String(255))
 
 class Jobs(db.Model):
-	pass
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(255))
 
 class HiredEmployees(db.Model):
-	pass
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(255))
+	datetime = db.Column(db.String(255))
+	department_id = db.Column(db.Integer)
+	job_id = db.Column(db.Integer)
+
+with app.app_context():
+	db.create_all()
 
 @app.route('/')
 def home():
-	#awesome code
+	#awesome code	
    pass
 
 
