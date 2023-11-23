@@ -84,13 +84,13 @@ def employees_hired():
 	with db.engine.connect() as connection:
 		query= """
 			select departments.kind as department, '' as empty_column, jobs.name as job, 
-			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS Q1, 
-			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2, 
-			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
-			SUM(CASE WHEN date_format(cast(hired_employees.datetime as date),'%m') BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
-			from hired_employees inner join jobs on hired_employees.job_id = jobs.id 
-			inner join departments on hired_employees.department_id = departments.id
-			where date_format(cast(hired_employees.datetime as date),'%Y') = '2021'
+			SUM(CASE WHEN date_format(cast(hiredemployees.datetime as date),'%m') BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS Q1, 
+			SUM(CASE WHEN date_format(cast(hiredemployees.datetime as date),'%m') BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2, 
+			SUM(CASE WHEN date_format(cast(hiredemployees.datetime as date),'%m') BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
+			SUM(CASE WHEN date_format(cast(hiredemployees.datetime as date),'%m') BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
+			from hiredemployees inner join jobs on hiredemployees.job_id = jobs.id 
+			inner join departments on hiredemployees.department_id = departments.id
+			where date_format(cast(hiredemployees.datetime as date),'%Y') = '2021'
 			group by departments.id , jobs.id  
 			order by `department`ASC, `job`;
 			"""
@@ -111,15 +111,15 @@ def list_id_employees():
 	with db.engine.connect() as connection:
 		query= """
 			select
-				hired_employees.id,
-				hired_employees.name,
+				hiredemployees.id,
+				hiredemployees.name,
 				count(1) as hired,
-				hired_employees.datetime
+				hiredemployees.datetime
 			from
-				hired_employees
-			inner join departments on departments.id = hired_employees.department_id
+				hiredemployees
+			inner join departments on departments.id = hiredemployees.department_id
 			where
-				date_format(cast(hired_employees.datetime as date), '%Y') = '2021'
+				date_format(cast(hiredemployees.datetime as date), '%Y') = '2021'
 			group by departments.id
 			order by hired desc;
 			"""
